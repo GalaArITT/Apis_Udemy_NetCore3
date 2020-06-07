@@ -14,7 +14,7 @@ namespace MiPrimerWebApiM3.Contexts
         {
 
         }
-
+        //sets de las clases 
         public DbSet<Autor> Autores { get; set; }
         public DbSet<Libro> Libros { get; set; }
     }

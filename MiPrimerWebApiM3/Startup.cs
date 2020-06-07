@@ -13,6 +13,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiPrimerWebApiM3.Contexts;
+using MiPrimerWebApiM3.Controllers;
+using MiPrimerWebApiM3.Services;
 
 namespace MiPrimerWebApiM3
 {
@@ -36,6 +38,16 @@ namespace MiPrimerWebApiM3
                .AddNewtonsoftJson(options =>
                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             //instalar newtonsoftjson 
+
+            //nuevos servicios Transient
+            services.AddTransient<ClaseB>();
+
+            //servicio Scoped 
+            //services.AddScoped<IClaseB, ClaseB>();
+            //services.AddScoped<AutoresController>();
+            
+            //singleton
+            //services.AddSingleton<IClaseB, ClaseB>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

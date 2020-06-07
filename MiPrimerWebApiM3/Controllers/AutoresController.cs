@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Entities;
+using MiPrimerWebApiM3.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,24 +16,30 @@ namespace MiPrimerWebApiM3.Controllers
     public class AutoresController: ControllerBase
     {
         private readonly ApplicationDbContext context;
+        private readonly ClaseB claseB;
 
-        public AutoresController(ApplicationDbContext context)
+        public AutoresController(ApplicationDbContext context, ClaseB claseB)
         {
             this.context = context;
+            this.claseB = claseB; 
         }
 
-        [HttpGet("/listado")]
-        [HttpGet("listado")]
+        //[HttpGet("/listado")]
+        //[HttpGet("listado")]
         //[HttpGet("[action]")]
+        [HttpGet]
         public ActionResult<IEnumerable<Autor>> Get()
         {
+            claseB.HacerAlgo();
             return context.Autores.Include(x => x.Libros).ToList();
         }
-
+        //api/autores/1 o api/autores/1/oliver
+        //[HttpGet("{id}/{params?}", Name = "ObtenerAutor")] // para definir un valor opcional
+        //[HttpGet("{id}/{params=Oliver}", Name = "ObtenerAutor")] //definir un valor predeterminado
         [HttpGet("{id}", Name = "ObtenerAutor")]
-        public ActionResult<Autor> Get(int id)
+        public async Task<ActionResult<Autor>> Get(int id,/*[BindRequired]*/ string param2)
         {
-            var autor = context.Autores.Include(x => x.Libros).FirstOrDefault(x => x.Id == id);
+            var autor = await context.Autores.Include(x => x.Libros).FirstOrDefaultAsync(x => x.Id == id);
 
             if (autor == null)
             {
@@ -49,7 +57,7 @@ namespace MiPrimerWebApiM3.Controllers
             //{
             //    return BadRequest(ModelState);
             //}
-
+            TryValidateModel(autor);
             context.Autores.Add(autor);
             context.SaveChanges();
             return new CreatedAtRouteResult("ObtenerAutor", new { id = autor.Id }, autor);
