@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Controllers;
+using MiPrimerWebApiM3.Helpers;
 using MiPrimerWebApiM3.Services;
 
 namespace MiPrimerWebApiM3
@@ -30,6 +32,13 @@ namespace MiPrimerWebApiM3
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<MiFiltroDeAccion>();
+            //habilidad servicio para filtros en caché
+            services.AddResponseCaching();
+
+            //agregar autenticacion
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
             services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
           
@@ -41,6 +50,11 @@ namespace MiPrimerWebApiM3
 
             //nuevos servicios Transient
             services.AddTransient<ClaseB>();
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new MiFiltroDeExcepcion());
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             //servicio Scoped 
             //services.AddScoped<IClaseB, ClaseB>();
@@ -64,8 +78,12 @@ namespace MiPrimerWebApiM3
             }
 
             app.UseHttpsRedirection();
+            app.UseResponseCaching();
+
 
             app.UseRouting();
+            //app.UseAuthentication(); //cambio por authorization
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

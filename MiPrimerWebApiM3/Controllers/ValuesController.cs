@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MiPrimerWebApiM3.Controllers
@@ -12,9 +13,11 @@ namespace MiPrimerWebApiM3.Controllers
     {
         // GET api/values
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        [ResponseCache(Duration =15)] //15 segundos
+        [Authorize]
+        public ActionResult<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            return DateTime.Now.Second.ToString();
         }
 
         // GET api/values/5

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Entities;
+using MiPrimerWebApiM3.Helpers;
 using MiPrimerWebApiM3.Services;
 using System;
 using System.Collections.Generic;
@@ -32,8 +33,10 @@ namespace MiPrimerWebApiM3.Controllers
         //[HttpGet("listado")]
         //[HttpGet("[action]")]
         [HttpGet]
+        [ServiceFilter(typeof(MiFiltroDeAccion))]
         public ActionResult<IEnumerable<Autor>> Get()
         {
+            throw new NotImplementedException();
             logger.LogInformation("obteniendo los autores");
             claseB.HacerAlgo();
             return context.Autores.Include(x => x.Libros).ToList();
