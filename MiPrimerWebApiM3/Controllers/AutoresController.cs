@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Entities;
 using MiPrimerWebApiM3.Services;
@@ -17,11 +18,14 @@ namespace MiPrimerWebApiM3.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly ClaseB claseB;
+        private readonly ILogger<AutoresController> logger;
 
-        public AutoresController(ApplicationDbContext context, ClaseB claseB)
+        public AutoresController(ApplicationDbContext context, ClaseB claseB, 
+            ILogger<AutoresController> logger)
         {
             this.context = context;
-            this.claseB = claseB; 
+            this.claseB = claseB;
+            this.logger = logger;
         }
 
         //[HttpGet("/listado")]
@@ -30,6 +34,7 @@ namespace MiPrimerWebApiM3.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Autor>> Get()
         {
+            logger.LogInformation("obteniendo los autores");
             claseB.HacerAlgo();
             return context.Autores.Include(x => x.Libros).ToList();
         }
@@ -39,10 +44,13 @@ namespace MiPrimerWebApiM3.Controllers
         [HttpGet("{id}", Name = "ObtenerAutor")]
         public async Task<ActionResult<Autor>> Get(int id,/*[BindRequired]*/ string param2)
         {
+            claseB.HacerAlgo();
+            logger.LogDebug($"buscando autor de {id}");
             var autor = await context.Autores.Include(x => x.Libros).FirstOrDefaultAsync(x => x.Id == id);
 
             if (autor == null)
             {
+                logger.LogWarning($"el autor de Id {id} no ha sido encontrado");
                 return NotFound();
             }
 
