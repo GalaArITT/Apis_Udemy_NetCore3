@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Entities;
 using MiPrimerWebApiM3.Helpers;
+using MiPrimerWebApiM3.Models;
 using MiPrimerWebApiM3.Services;
 using System;
 using System.Collections.Generic;
@@ -20,13 +22,15 @@ namespace MiPrimerWebApiM3.Controllers
         private readonly ApplicationDbContext context;
         private readonly ClaseB claseB;
         private readonly ILogger<AutoresController> logger;
+        private readonly IMapper mapper;
 
         public AutoresController(ApplicationDbContext context, ClaseB claseB, 
-            ILogger<AutoresController> logger)
+            ILogger<AutoresController> logger, IMapper mapper)
         {
             this.context = context;
             this.claseB = claseB;
             this.logger = logger;
+            this.mapper = mapper;
         }
 
         //[HttpGet("/listado")]
@@ -34,18 +38,22 @@ namespace MiPrimerWebApiM3.Controllers
         //[HttpGet("[action]")]
         [HttpGet]
         [ServiceFilter(typeof(MiFiltroDeAccion))]
-        public ActionResult<IEnumerable<Autor>> Get()
+        public async Task<ActionResult<IEnumerable<AutorDTO>>> Get()
         {
-            throw new NotImplementedException();
-            logger.LogInformation("obteniendo los autores");
-            claseB.HacerAlgo();
-            return context.Autores.Include(x => x.Libros).ToList();
+            //throw new NotImplementedException();
+            //logger.LogInformation("obteniendo los autores");
+            //claseB.HacerAlgo();
+            var autores = await context.Autores.ToListAsync();
+            var autoresDTO = mapper.Map<List<AutorDTO>>(autores);
+
+            return autoresDTO;
+                //context.Autores.Include(x => x.Libros).ToList();
         }
         //api/autores/1 o api/autores/1/oliver
         //[HttpGet("{id}/{params?}", Name = "ObtenerAutor")] // para definir un valor opcional
         //[HttpGet("{id}/{params=Oliver}", Name = "ObtenerAutor")] //definir un valor predeterminado
         [HttpGet("{id}", Name = "ObtenerAutor")]
-        public async Task<ActionResult<Autor>> Get(int id,/*[BindRequired]*/ string param2)
+        public async Task<ActionResult<AutorDTO>> Get(int id,/*[BindRequired]*/ string param2)
         {
             claseB.HacerAlgo();
             logger.LogDebug($"buscando autor de {id}");
@@ -56,8 +64,10 @@ namespace MiPrimerWebApiM3.Controllers
                 logger.LogWarning($"el autor de Id {id} no ha sido encontrado");
                 return NotFound();
             }
+            //mapear el modelo autor
+            var autorDTO = mapper.Map<AutorDTO>(autor);
 
-            return autor;
+            return autorDTO;
         }
 
         [HttpPost]

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,7 +16,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiPrimerWebApiM3.Contexts;
 using MiPrimerWebApiM3.Controllers;
+using MiPrimerWebApiM3.Entities;
 using MiPrimerWebApiM3.Helpers;
+using MiPrimerWebApiM3.Models;
 using MiPrimerWebApiM3.Services;
 
 namespace MiPrimerWebApiM3
@@ -35,6 +38,13 @@ namespace MiPrimerWebApiM3
             services.AddScoped<MiFiltroDeAccion>();
             //habilidad servicio para filtros en caché
             services.AddResponseCaching();
+
+            //configurar automapper
+            services.AddAutoMapper(configuration => 
+            {
+                configuration.CreateMap<Autor, AutorDTO>();
+            },
+                typeof(Startup));
 
             //agregar autenticacion
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
