@@ -13,7 +13,7 @@ namespace MiPrimerWebApiM3.Entities
     {
         public int Id { get; set; }
         [Required]
-        [StringLength(10,ErrorMessage ="El campo debe tener {1} caracteres o menos")]
+        [StringLength(50,ErrorMessage ="El campo debe tener {1} caracteres o menos")]
         //[PrimeraLetraMayuscula]
         public string Nombre { get; set; }
         public string Identificacion { get; set; }

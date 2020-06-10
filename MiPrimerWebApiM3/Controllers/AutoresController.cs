@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -17,14 +18,14 @@ namespace MiPrimerWebApiM3.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AutoresController: ControllerBase
+    public class AutoresController : ControllerBase
     {
         private readonly ApplicationDbContext context;
         private readonly ClaseB claseB;
         private readonly ILogger<AutoresController> logger;
         private readonly IMapper mapper;
 
-        public AutoresController(ApplicationDbContext context, ClaseB claseB, 
+        public AutoresController(ApplicationDbContext context, ClaseB claseB,
             ILogger<AutoresController> logger, IMapper mapper)
         {
             this.context = context;
@@ -47,7 +48,7 @@ namespace MiPrimerWebApiM3.Controllers
             var autoresDTO = mapper.Map<List<AutorDTO>>(autores);
 
             return autoresDTO;
-                //context.Autores.Include(x => x.Libros).ToList();
+            //context.Autores.Include(x => x.Libros).ToList();
         }
         //api/autores/1 o api/autores/1/oliver
         //[HttpGet("{id}/{params?}", Name = "ObtenerAutor")] // para definir un valor opcional
@@ -57,6 +58,7 @@ namespace MiPrimerWebApiM3.Controllers
         {
             claseB.HacerAlgo();
             logger.LogDebug($"buscando autor de {id}");
+
             var autor = await context.Autores.Include(x => x.Libros).FirstOrDefaultAsync(x => x.Id == id);
 
             if (autor == null)
@@ -71,51 +73,74 @@ namespace MiPrimerWebApiM3.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromBody] Autor autor)
+        public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacion)
         {
-            // Esto no es necesario en asp.net core 2.1 en adelante
-            //if (!ModelState.IsValid)
-            //{
-            //    return BadRequest(ModelState);
-            //}
-            TryValidateModel(autor);
+
+            //TryValidateModel(autor);
+            var autor = mapper.Map<Autor>(autorCreacion);
             context.Autores.Add(autor);
-            context.SaveChanges();
-            return new CreatedAtRouteResult("ObtenerAutor", new { id = autor.Id }, autor);
+            await context.SaveChangesAsync();
+            var autorDTO = mapper.Map<AutorDTO>(autor);
+
+            return new CreatedAtRouteResult("ObtenerAutor", new { id = autor.Id }, autorDTO);
 
         }
 
         [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody] Autor value)
+        public async Task<ActionResult> Put(int id, [FromBody] AutorCreacionDTO autorActualizacion)
         {
-            // Esto no es necesario en asp.net core 2.1
-            // if (ModelState.IsValid){
+            //mapeando
+            var autor = mapper.Map<Autor>(autorActualizacion);
+            autor.Id = id;
 
-            // }
+            context.Entry(autor).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return Ok();
+        }
 
-            if (id != value.Id)
+        //actualizacion parcial
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<AutorCreacionDTO> patchDocument)
+        {
+            if (patchDocument ==null)
             {
                 return BadRequest();
             }
+            var autorDelaBD = await context.Autores.FirstOrDefaultAsync(s => s.Id == id); 
+            if (autorDelaBD == null)
+            {
+                return NotFound();
+            }
+            var autorDTO = mapper.Map<AutorCreacionDTO>(autorDelaBD);
+            
+            patchDocument.ApplyTo(autorDTO, ModelState);
+            
+            mapper.Map(autorDTO, autorDelaBD);
 
-            context.Entry(value).State = EntityState.Modified;
-            context.SaveChanges();
+            var isValid = TryValidateModel(autorDelaBD);
+            if (!isValid)
+            {
+                return BadRequest(ModelState);
+            }
+ 
+            await context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<Autor> Delete(int id)
+        public async Task<ActionResult<Autor>> Delete(int id)
         {
-            var autor = context.Autores.FirstOrDefault(x => x.Id == id);
+            var autorId = await context.Autores.Select(s=>s.Id).FirstOrDefaultAsync(x =>x== id);
 
-            if (autor == null)
+            if (autorId == default(int))
             {
                 return NotFound();
             }
 
-            context.Autores.Remove(autor);
-            context.SaveChanges();
-            return autor;
+            context.Remove(new Autor { Id = autorId});
+            await context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }
