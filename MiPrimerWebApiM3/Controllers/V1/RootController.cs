@@ -8,7 +8,7 @@ using MiPrimerWebApiM3.Models;
 
 namespace MiPrimerWebApiM3.Controllers
 {
-    [Route("api")]
+    [Route("api/v1")]
     [ApiController]
     public class RootController : ControllerBase
     {

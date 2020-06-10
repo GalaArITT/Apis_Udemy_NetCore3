@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MiPrimerWebApiM3.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
     {

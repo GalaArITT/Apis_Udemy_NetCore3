@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MiPrimerWebApiM3.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class LibrosController: ControllerBase
     {

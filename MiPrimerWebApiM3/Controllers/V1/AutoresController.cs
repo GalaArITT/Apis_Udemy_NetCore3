@@ -16,8 +16,9 @@ using System.Threading.Tasks;
 
 namespace MiPrimerWebApiM3.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
+    //[HttpHeaderIsPresent("x-version","1")]
     public class AutoresController : ControllerBase
     {
         private readonly ApplicationDbContext context;
@@ -40,7 +41,7 @@ namespace MiPrimerWebApiM3.Controllers
         [HttpGet(Name = "ObtenerAutores")]
         //[ServiceFilter(typeof(MiFiltroDeAccion))]
         [ServiceFilter(typeof(HATEOASAuthorsFilterAttribute))]
-        public async Task<IActionResult> Get(bool IncluirEnlacesHateOS = false)
+        public async Task<IActionResult> Get(bool IncluirEnlacesHateOS = false, int numeroPagina=1, int cantidad=10)
         {
 
             //mamadas
@@ -49,7 +50,15 @@ namespace MiPrimerWebApiM3.Controllers
             //throw new NotImplementedException();
             //logger.LogInformation("obteniendo los autores");
             //claseB.HacerAlgo();
-            var autores = await context.Autores.ToListAsync();
+
+            var query = context.Autores.AsQueryable();
+
+            var totalRegistros = query.Count();
+
+            var autores = await query.Skip(cantidad*(numeroPagina-1)).Take(cantidad).ToListAsync();
+
+            Response.Headers["X-Total-Registros"] = totalRegistros.ToString();
+            Response.Headers["X-Cantidad-Paginas"] = ((int)Math.Ceiling((double) totalRegistros/cantidad)).ToString();
             var autoresDTO = mapper.Map<List<AutorDTO>>(autores);
             
             var resultado = new ColeccionDeRecursos<AutorDTO>(autoresDTO);
@@ -69,6 +78,8 @@ namespace MiPrimerWebApiM3.Controllers
         //[HttpGet("{id}/{params=Oliver}", Name = "ObtenerAutor")] //definir un valor predeterminado
         [HttpGet("{id}", Name = "ObtenerAutor")]
         [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
+        //[ProducesResponseType(404)]
+        //[ProducesResponseType(typeof(AutorDTO),200)]
         public async Task<ActionResult<AutorDTO>> Get(int id,/*[BindRequired]*/ string param2)
         {
             /*claseB.HacerAlgo();
@@ -152,8 +163,12 @@ namespace MiPrimerWebApiM3.Controllers
 
             return Ok();
         }
-
+        /// <summary>
+        /// Borra un elemento específico
+        /// </summary>
+        /// <param name="id">Id del elemento a borrar</param>   
         [HttpDelete("{id}", Name = "BorrarAutor")]
+
         public async Task<ActionResult<Autor>> Delete(int id)
         {
             var autorId = await context.Autores.Select(s=>s.Id).FirstOrDefaultAsync(x =>x== id);
