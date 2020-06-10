@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,10 +68,17 @@ namespace MiPrimerWebApiM3
                 options.Filters.Add(new MiFiltroDeExcepcion());
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.AddScoped<HATEOASAuthorFilterAttribute>();
+            services.AddScoped<HATEOASAuthorsFilterAttribute>();
+            services.AddScoped<GeneradorEnlaces>();
+
             //servicio Scoped 
             //services.AddScoped<IClaseB, ClaseB>();
             //services.AddScoped<AutoresController>();
-            
+
             //singleton
             //services.AddSingleton<IClaseB, ClaseB>();
         }

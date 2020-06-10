@@ -37,29 +37,45 @@ namespace MiPrimerWebApiM3.Controllers
         //[HttpGet("/listado")]
         //[HttpGet("listado")]
         //[HttpGet("[action]")]
-        [HttpGet]
-        [ServiceFilter(typeof(MiFiltroDeAccion))]
-        public async Task<ActionResult<IEnumerable<AutorDTO>>> Get()
+        [HttpGet(Name = "ObtenerAutores")]
+        //[ServiceFilter(typeof(MiFiltroDeAccion))]
+        [ServiceFilter(typeof(HATEOASAuthorsFilterAttribute))]
+        public async Task<IActionResult> Get(bool IncluirEnlacesHateOS = false)
         {
+
+            //mamadas
+            //ActionResult</*IEnumerable<AutorDTO>*/ColeccionDeRecursos<AutorDTO>>
+
             //throw new NotImplementedException();
             //logger.LogInformation("obteniendo los autores");
             //claseB.HacerAlgo();
             var autores = await context.Autores.ToListAsync();
             var autoresDTO = mapper.Map<List<AutorDTO>>(autores);
+            
+            var resultado = new ColeccionDeRecursos<AutorDTO>(autoresDTO);
 
-            return autoresDTO;
+            if (IncluirEnlacesHateOS)
+            {
+                autoresDTO.ForEach(s => GenerarEnlaces(s));
+                resultado.Enlaces.Add(new Enlace(Url.Link("ObtenerAutores", new { }), rel: "self", metodo: "GET"));
+                resultado.Enlaces.Add(new Enlace(Url.Link("CrearAutor", new { }), rel: "CreateAuthor", metodo: "POST"));
+            }
+
+            return Ok(autoresDTO);
             //context.Autores.Include(x => x.Libros).ToList();
         }
         //api/autores/1 o api/autores/1/oliver
         //[HttpGet("{id}/{params?}", Name = "ObtenerAutor")] // para definir un valor opcional
         //[HttpGet("{id}/{params=Oliver}", Name = "ObtenerAutor")] //definir un valor predeterminado
         [HttpGet("{id}", Name = "ObtenerAutor")]
+        [ServiceFilter(typeof(HATEOASAuthorFilterAttribute))]
         public async Task<ActionResult<AutorDTO>> Get(int id,/*[BindRequired]*/ string param2)
         {
-            claseB.HacerAlgo();
-            logger.LogDebug($"buscando autor de {id}");
+            /*claseB.HacerAlgo();
+            logger.LogDebug($"buscando autor de {id}");*/
 
-            var autor = await context.Autores.Include(x => x.Libros).FirstOrDefaultAsync(x => x.Id == id);
+            //var autor = await context.Autores.Include(x => x.Libros).FirstOrDefaultAsync(x => x.Id == id);
+            var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
 
             if (autor == null)
             {
@@ -69,10 +85,19 @@ namespace MiPrimerWebApiM3.Controllers
             //mapear el modelo autor
             var autorDTO = mapper.Map<AutorDTO>(autor);
 
+            //GenerarEnlaces(autorDTO);
+
             return autorDTO;
         }
 
-        [HttpPost]
+        private void GenerarEnlaces(AutorDTO autor)
+        {
+            autor.Enlaces.Add(new Enlace(Url.Link("ObtenerAutor", new { id = autor.Id }), rel: "self", metodo: "GET"));
+            autor.Enlaces.Add(new Enlace(Url.Link("ActualizarAutor", new { id = autor.Id }), rel: "update-author", metodo: "PUT"));
+            autor.Enlaces.Add(new Enlace(Url.Link("BorrarAutor", new { id = autor.Id }), rel: "delete-author", metodo: "DELETE"));
+        }
+
+        [HttpPost(Name = "CrearAutor")]
         public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacion)
         {
 
@@ -86,7 +111,7 @@ namespace MiPrimerWebApiM3.Controllers
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "ActualizarAutor")]
         public async Task<ActionResult> Put(int id, [FromBody] AutorCreacionDTO autorActualizacion)
         {
             //mapeando
@@ -99,7 +124,7 @@ namespace MiPrimerWebApiM3.Controllers
         }
 
         //actualizacion parcial
-        [HttpPatch("{id}")]
+        [HttpPatch("{id}", Name = "ActualizarParcialmenteAutor")]
         public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<AutorCreacionDTO> patchDocument)
         {
             if (patchDocument ==null)
@@ -128,7 +153,7 @@ namespace MiPrimerWebApiM3.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "BorrarAutor")]
         public async Task<ActionResult<Autor>> Delete(int id)
         {
             var autorId = await context.Autores.Select(s=>s.Id).FirstOrDefaultAsync(x =>x== id);

@@ -12,7 +12,7 @@ namespace MiPrimerWebApiM3.Controllers
     public class ValuesController : ControllerBase
     {
         // GET api/values
-        [HttpGet]
+        [HttpGet(Name = "ObtenerValores")]
         [ResponseCache(Duration =15)] //15 segundos
         [Authorize]
         public ActionResult<string> Get()
@@ -21,26 +21,26 @@ namespace MiPrimerWebApiM3.Controllers
         }
 
         // GET api/values/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "ObtenerValor")]
         public ActionResult<string> Get(int id)
         {
             return "value";
         }
 
         // POST api/values
-        [HttpPost]
+        [HttpPost(Name = "CrearValor")]
         public void Post([FromBody] string value)
         {
         }
 
         // PUT api/values/5
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "ActualizarValor")]
         public void Put(int id, [FromBody] string value)
         {
         }
 
         // DELETE api/values/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "BorrarValor")]
         public void Delete(int id)
         {
         }

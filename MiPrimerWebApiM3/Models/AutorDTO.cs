@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiPrimerWebApiM3.Models
 {
-    public class AutorDTO
+    public class AutorDTO : Recurso
     {
         public int Id { get; set; }
         [Required]
